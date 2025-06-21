@@ -18,7 +18,7 @@ def load_llm(huggingface_repo_id):
     llm=HuggingFaceEndpoint(
         repo_id=huggingface_repo_id,
         temperature=0.5,
-        huggingfacehub_api_token=HF_TOKEN,  # Pass token here
+        huggingfacehub_api_token=HF_TOKEN,
         max_new_tokens=512,
     )
     return llm
@@ -37,13 +37,16 @@ Start the answer directly. No small talk please.
 """
 
 def set_custom_prompt(custom_prompt_template):
-    prompt=PromptTemplate(template=custom_prompt_template, input_variables=["context", "question"])
+    prompt = PromptTemplate(template=custom_prompt_template, input_variables=["context", "question"])
     return prompt
 
 # Load Database
 DB_FAISS_PATH="vectorstore/db_faiss"
-embedding_model=HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
-db=FAISS.load_local(DB_FAISS_PATH, embedding_model, allow_dangerous_deserialization=True)
+embedding_model=HuggingFaceEmbeddings(
+    model_name="sentence-transformers/all-MiniLM-L6-v2",
+    model_kwargs={"device": "cpu"}
+)
+db = FAISS.load_local(DB_FAISS_PATH, embedding_model, allow_dangerous_deserialization=True)
 
 # Create QA chain
 qa_chain=RetrievalQA.from_chain_type(

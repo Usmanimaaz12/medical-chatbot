@@ -3,7 +3,6 @@ import streamlit as st
 
 from langchain.embeddings import HuggingFaceEmbeddings
 from langchain.chains import RetrievalQA
-
 from langchain_community.vectorstores import FAISS
 from langchain_core.prompts import PromptTemplate
 from langchain_huggingface import HuggingFaceEndpoint
@@ -12,8 +11,11 @@ from langchain_huggingface import HuggingFaceEndpoint
 DB_FAISS_PATH="vectorstore/db_faiss"
 @st.cache_resource
 def get_vectorstore():
-    embedding_model=HuggingFaceEmbeddings(model_name='sentence-transformers/all-MiniLM-L6-v2')
-    db=FAISS.load_local(DB_FAISS_PATH, embedding_model, allow_dangerous_deserialization=True)
+    embedding_model = HuggingFaceEmbeddings(
+        model_name='sentence-transformers/all-MiniLM-L6-v2',
+        model_kwargs={"device": "cpu"}
+    )
+    db = FAISS.load_local(DB_FAISS_PATH, embedding_model, allow_dangerous_deserialization=True)
     return db
 
 
@@ -34,6 +36,8 @@ def load_llm(huggingface_repo_id, HF_TOKEN):
 
 def main():
     st.title("Ask MediBot!")
+    # HF_TOKEN = st.secrets.get("HF_TOKEN", None) or os.environ.get("HF_TOKEN", None)
+    # HUGGINGFACE_REPO_ID = "mistralai/Mistral-7B-Instruct-v0.3"
 
     if 'messages' not in st.session_state:
         st.session_state.messages = []
@@ -85,7 +89,7 @@ def main():
             st.session_state.messages.append({'role':'assistant', 'content': result_to_show})
 
         except Exception as e:
-            st.error(f"Error: {str(e)}")
+            st.error(f"Error processing query: {str(e)}")
 
 if __name__ == "__main__":
     main()
